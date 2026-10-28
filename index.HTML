@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ג'פניטה</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Noto+Serif+JP:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Heebo', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+        }
+
+        /* ----- מסך קראש (כשמכבים את האתר) ----- */
+        .crash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .crash-screen.active {
+            display: flex;
+        }
+
+        .crash-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #ff3b3b;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255, 59, 59, 0.5);
+        }
+
+        .crash-text {
+            font-size: 1.2rem;
+            color: #aaaaaa;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        /* מעטפת לרקע */
+        .bg-wrapper {
+            position: absolute;
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            height: 110vh;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* ----- תמונת הרקע הראשי ----- */
+        .bg-container {
+            width: 100%;
+            height: 100%;
+            background-image: url('file:///C:/Users/yonat/Downloads/472ef894-1af6-4435-93ac-86b0607e8b43%20(1).png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transform: scale(1.05);
+            transition: opacity 1.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.15s ease-out;
+            will-change: transform;
+        }
+
+        .bg-container.active {
+            opacity: 1;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ----- תג פרופיל ודרגה מעל הרקע הראשי ----- */
+        .user-profile-badge {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            z-index: 10;
+            background: rgba(15, 10, 10, 0.85);
+            border: 1px solid rgba(255, 59, 59, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 12px 22px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            animation: fadeInDown 0.8s ease forwards;
+        }
+
+        .user-profile-badge.active {
+            display: flex;
+        }
+
+        .user-info-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .user-role-tag {
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ff3b3b, #b81414);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(255, 59, 59, 0.3);
+        }
+
+        /* ----- מסך אנימציית כניסה (INTRO) ----- */
+        .intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a0808 0%, #050202 100%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1.2s ease, visibility 1.2s ease;
+            overflow: hidden;
+        }
+
+        .intro-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .sun-bg {
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, rgba(216, 27, 27, 0.85) 0%, rgba(139, 0, 0, 0.2) 70%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(20px);
+            animation: pulseSun 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseSun {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            100% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .japanese-watermark {
+            position: absolute;
+            font-family: 'Noto Serif JP', serif;
+            font-size: 14rem;
+            color: rgba(255, 255, 255, 0.03);
+            letter-spacing: 12px;
+            user-select: none;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .intro-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sub-kanji {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.6rem;
+            color: #ff3b3b;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInDown 1s forwards 0.4s ease;
+        }
+
+        .main-title {
+            font-family: 'Heebo', sans-serif;
+            font-size: 5.5rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            background: linear-gradient(185deg, #ffffff 0%, #e0d0b0 50%, #8c734b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            opacity: 0;
+            transform: scale(0.85);
+            animation: zoomInTitle 1.2s forwards 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .main-title::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ff3b3b, transparent);
+            animation: expandLine 1s forwards 1.6s ease;
+        }
+
+        /* כפתור פתיחת טופס כניסה ראשוני */
+        .show-login-btn {
+            margin-top: 55px;
+            padding: 14px 45px;
+            font-size: 1.1rem;
+            font-family: 'Heebo', sans-serif;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #b81414 0%, #6b0808 100%);
+            border: 1px solid rgba(255, 85, 85, 0.4);
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(184, 20, 20, 0.5);
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards 1.8s ease;
+        }
+
+        .show-login-btn:hover {
+            background: linear-gradient(135deg, #d91b1b 0%, #8c0c0c 100%);
+            box-shadow: 0 0 40px rgba(230, 30, 30, 0.8);
+            transform: translateY(-2px) scale(1.04);
+            border-color: #ff7777;
+        }
+
+        /* טופס התחברות */
+        .login-box {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            width: 300px;
+            margin-top: 35px;
+            background: rgba(15, 10, 10, 0.85);
+            padding: 25px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 59, 59, 0.3);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            animation: popIn 0.5s ease forwards;
+        }
+
+        .login-box.active {
+            display: flex;
+        }
+
+        .login-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 500;
+            font-family: 'Heebo', sans-serif;
+            text-align: center;
+            outline: none;
+            box-shadow: none;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .login-input::placeholder {
+            color: #dddddd;
+            font-weight: 400;
+        }
+
+        .login-input:focus {
+            border-color: #ff3b3b;
+            background: rgba(255, 255, 255, 0.18);
+            box-shadow: none;
+            outline: none;
+        }
+
+        .enter-btn {
+            padding: 12px;
+            font-size: 1.05rem;
+            font-family: 'Heebo', sans-serif;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #b81414 0%, #6b0808 100%);
+            border: 1px solid rgba(255, 85, 85, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(184, 20, 20, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .enter-btn:hover {
+            background: linear-gradient(135deg, #d91b1b 0%, #8c0c0c 100%);
+            box-shadow: 0 0 30px rgba(230, 30, 30, 0.8);
+        }
+
+        .error-msg {
+            color: #ff5555;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: none;
+        }
+
+        /* כיתוב קרדיט בתחתית המסך */
+        .footer-credit {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 1px;
+            z-index: 10;
+            pointer-events: none;
+            font-family: 'Heebo', sans-serif;
+        }
+
+        /* ----- חלון אדמין רגיל (F9) ----- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: background 0.4s ease, backdrop-filter 0.4s ease, opacity 0.4s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+        }
+
+        .admin-panel {
+            background: rgba(18, 18, 18, 0.95);
+            border: 1px solid rgba(255, 59, 59, 0.3);
+            border-radius: 16px;
+            width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 0, 0, 0.15);
+            position: relative;
+            transform: scale(0.7) translateY(40px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+        }
+
+        .modal.active .admin-panel {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* ----- חלון F1 ייחודי עם אנימציות (Z-Index גבוה יותר כדי לעקוף את מסך הקראש) ----- */
+        .f1-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: background 0.5s ease, backdrop-filter 0.5s ease, opacity 0.5s ease;
+        }
+
+        .f1-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            background: rgba(5, 0, 0, 0.9);
+            backdrop-filter: blur(12px);
+        }
+
+        .f1-panel {
+            background: linear-gradient(145deg, #160a0a, #0a0404);
+            border: 2px solid rgba(255, 59, 59, 0.6);
+            border-radius: 20px;
+            width: 440px;
+            padding: 30px;
+            box-shadow: 0 0 60px rgba(255, 0, 0, 0.3), inset 0 0 20px rgba(255, 59, 59, 0.1);
+            position: relative;
+            transform: scale(0.5) rotate(-5deg);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        }
+
+        .f1-modal.active .f1-panel {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+
+        .f1-header {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #ff3b3b;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px rgba(255, 59, 59, 0.4);
+            animation: f1Glow 2s infinite alternate;
+        }
+
+        @keyframes f1Glow {
+            0% { text-shadow: 0 0 10px rgba(255, 59, 59, 0.4); }
+            100% { text-shadow: 0 0 25px rgba(255, 59, 59, 0.9); }
+        }
+
+        .f1-input {
+            width: 100%;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(255, 59, 59, 0.4);
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .f1-input:focus {
+            border-color: #ff5555;
+            background: rgba(255, 59, 59, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 59, 59, 0.4);
+        }
+
+        .f1-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff3b3b 0%, #8c0c0c 100%);
+            color: #fff;
+            border: 1px solid rgba(255, 100, 100, 0.5);
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+            box-shadow: 0 5px 20px rgba(255, 59, 59, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 10px;
+        }
+
+        .f1-btn:hover {
+            background: linear-gradient(135deg, #ff5555 0%, #b81414 100%);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 59, 59, 0.7);
+        }
+
+        .f1-btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .f1-status-box {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .f1-status-box.offline {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            color: #ff6b6b;
+            animation: pulseWarning 1.5s infinite alternate;
+        }
+
+        .f1-status-box.online {
+            background: rgba(0, 255, 100, 0.15);
+            border: 1px solid rgba(0, 255, 100, 0.4);
+            color: #55ff99;
+        }
+
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 5px rgba(255, 0, 0, 0.2); }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.6); }
+        }
+
+        .f1-close {
+            position: absolute;
+            top: 15px;
+            left: 18px;
+            color: #aaa;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.3rem;
+            transition: 0.3s;
+        }
+
+        .f1-close:hover {
+            color: #ff3b3b;
+            transform: rotate(90deg);
+        }
+
+        .admin-header {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ff3b3b;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .admin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-input, .admin-select {
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+            box-shadow: none;
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .admin-select {
+            cursor: pointer;
+        }
+
+        .admin-select option {
+            background: #181818;
+            color: #fff;
+        }
+
+        .admin-input:focus, .admin-select:focus {
+            border-color: #ff3b3b;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .admin-btn {
+            padding: 10px;
+            background: linear-gradient(135deg, #ff3b3b 0%, #b81414 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s ease;
+            font-family: 'Heebo', sans-serif;
+            box-shadow: 0 4px 15px rgba(255, 59, 59, 0.3);
+        }
+
+        .admin-btn:hover {
+            background: linear-gradient(135deg, #ff5555 0%, #d91b1b 100%);
+            transform: translateY(-1px);
+        }
+
+        .user-list {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+            gap: 10px;
+        }
+
+        .delete-btn {
+            background: rgba(255, 59, 59, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 59, 59, 0.4);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-family: 'Heebo', sans-serif;
+            transition: 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: #ff3b3b;
+            color: #fff;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            left: 18px;
+            color: #888;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #ff3b3b;
+        }
+
+        /* עלי סאקורה נופלים מפוזרים מיד בכל המסך */
+        .sakura {
+            position: absolute;
+            background: linear-gradient(135deg, #ffb7c5, #ff69b4);
+            border-radius: 100% 0 100% 0;
+            opacity: 0.7;
+            pointer-events: none;
+            animation: fall infinite linear;
+        }
+
+        @keyframes fadeInDown { to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomInTitle { to { opacity: 1; transform: scale(1); } }
+        @keyframes expandLine { to { transform: translateX(-50%) scaleX(1); } }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fall {
+            0% {
+                top: -5%;
+                transform: translateX(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                top: 105%;
+                transform: translateX(120px) rotate(360deg);
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- מסך קראש מעודכן -->
+    <div class="crash-screen" id="crashScreen">
+        <div class="crash-title">האתר קרס</div>
+        <div class="crash-text">אי אפשר להיכנס לאתר כרגע.</div>
+    </div>
+
+    <!-- אפקט סאונד מובנה -->
+    <audio id="ambientSound" src="https://actions.google.com/sounds/v1/ambiences/zen_garden.ogg" preload="auto" loop></audio>
+
+    <!-- תג מזהה משתמש + דרגה במסך הראשי -->
+    <div class="user-profile-badge" id="userProfileBadge">
+        <div class="user-info-name" id="badgeUsername">שם משתמש</div>
+        <div class="user-role-tag" id="badgeRole">דרגה</div>
+    </div>
+
+    <!-- מסך אנימציית הכניסה -->
+    <div class="intro-screen" id="introScreen">
+        <div class="sun-bg"></div>
+        <div class="japanese-watermark">ジャパニタ</div>
+        
+        <div class="intro-content">
+            <div class="sub-kanji">ジャパニタ</div>
+            <h1 class="main-title">ג'פניטה</h1>
+            
+            <!-- כפתור כניסה ראשי ראשוני -->
+            <button class="show-login-btn" id="showLoginBtn" onclick="openLoginForm()">כניסה לאתר המסעדה</button>
+
+            <!-- טופס מילוי פרטים (נפתח בלחיצה) -->
+            <div class="login-box" id="loginBox">
+                <div class="login-title">הזן פרטי גישה</div>
+                <input type="text" id="usernameInput" class="login-input" placeholder="שם משתמש">
+                <input type="text" id="pinInput" class="login-input" placeholder="קוד מספרי" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button class="enter-btn" onclick="enterSite()">אישור וכניסה</button>
+                <div class="error-msg" id="errorMsg">שם משתמש או קוד שגויים!</div>
+            </div>
+        </div>
+
+        <!-- כיתוב קרדיט בתחתית -->
+        <div class="footer-credit">אתר זה נוסד על ידי - mia.22345</div>
+    </div>
+
+    <!-- מעטפת ותמונת הרקע הזזה -->
+    <div class="bg-wrapper">
+        <div class="bg-container" id="bgContainer"></div>
+    </div>
+    <div class="overlay"></div>
+
+    <!-- חלון ניהול אדמין רגיל (F9) -->
+    <div class="modal" id="adminModal">
+        <div class="admin-panel">
+            <span class="close-modal" onclick="closeAdmin()">✕</span>
+            <div id="adminLoginSection">
+                <div class="admin-header">גישת מנהל (F9)</div>
+                <div class="admin-form">
+                    <input type="password" id="adminPasswordInput" class="admin-input" placeholder="הזן קוד אבטחה לפאנל">
+                    <button class="admin-btn" onclick="verifyAdminCode()">אישור קוד</button>
+                    <div class="error-msg" id="adminErrorMsg" style="color:#ff5555; text-align:center; margin-top:5px; display:none;">קוד מנהל שגוי!</div>
+                </div>
+            </div>
+            <div id="adminDashboardSection" style="display: none;">
+                <div class="admin-header">פאנל ניהול - ג'פניטה</div>
+                <div class="admin-form" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+                    <div style="font-size: 0.85rem; color: #ff8888; margin-bottom: 5px;">ניהול דרגות במערכת:</div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="newRoleName" class="admin-input" placeholder="שם דרגה חדשה" style="flex: 1; margin-bottom: 0;">
+                        <button class="admin-btn" onclick="addNewRole()" style="background: linear-gradient(135deg, #333, #555);">הוסף</button>
+                    </div>
+                    <div style="font-size:0.8rem; color:#aaa; margin-bottom:4px;">דרגות קיימות (לחץ למחיקה):</div>
+                    <div class="user-list" id="roleList" style="max-height: 100px;"></div>
+                </div>
+                <div class="admin-form">
+                    <div style="font-size: 0.85rem; color: #ff8888; margin-bottom: 5px;">יצירת משתמש חדש:</div>
+                    <input type="text" id="newUsername" class="admin-input" placeholder="שם משתמש חדש">
+                    <input type="text" id="newPin" class="admin-input" placeholder="קוד מספרי חדש" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <select id="newRole" class="admin-select"></select>
+                    <button class="admin-btn" onclick="addUser()">הוסף משתמש</button>
+                </div>
+                <div style="font-size:0.9rem; color:#aaa; margin-bottom:8px;">משתמשים קיימים (שינוי דרגה מידי):</div>
+                <div class="user-list" id="userList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- פאנל חירום F1 (זמין תמיד מעל הכל, ללא מד נראה) -->
+    <div class="f1-modal" id="f1Modal">
+        <div class="f1-panel">
+            <span class="f1-close" onclick="closeF1()">✕</span>
+            
+            <!-- שלב 1: הזנת קוד F1 -->
+            <div id="f1LoginSection">
+                <div class="f1-header">מערכת חירום</div>
+                <input type="password" id="f1PasswordInput" class="f1-input" placeholder="הזן קוד חירום">
+                <button class="f1-btn" onclick="verifyF1Code()">אישור קוד חירום</button>
+                <div class="error-msg" id="f1ErrorMsg" style="color:#ff5555; text-align:center; margin-top:5px; display:none;">קוד שגוי!</div>
+            </div>
+
+            <!-- שלב 2: פאנל השליטה והכיבוי -->
+            <div id="f1DashboardSection" style="display: none;">
+                <div class="f1-header">שליטה באתר</div>
+                <div class="f1-status-box" id="f1StatusBox">סטטוס אתר: פעיל תקין</div>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                    <button class="f1-btn" style="background: linear-gradient(135deg, #aa1111, #550000);" onclick="setGlobalSiteState(false)">כבה את האתר לחלוטין (קראש)</button>
+                    <button class="f1-btn" style="background: linear-gradient(135deg, #11aa44, #005522);" onclick="setGlobalSiteState(true)">הפעל מחדש את האתר</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // בדיקת סטטוס קראש גלובלי (localStorage)
+        function checkGlobalCrashStatus() {
+            let isCrashed = localStorage.getItem('japanita_global_crash') === 'true';
+            const crashScreen = document.getElementById('crashScreen');
+            if (isCrashed) {
+                if (crashScreen) crashScreen.classList.add('active');
+            } else {
+                if (crashScreen) crashScreen.classList.remove('active');
+            }
+        }
+        checkGlobalCrashStatus();
+
+        // האזנה לשינויים ב-LocalStorage
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'japanita_global_crash') {
+                checkGlobalCrashStatus();
+            }
+        });
+
+        // טעינה בטוחה של דרגות ומשתמשים
+        let roles, users;
+        try { roles = JSON.parse(localStorage.getItem('japanita_roles')); } catch(e) { roles = null; }
+        if (!roles || !Array.isArray(roles)) roles = ['עובד רגיל', 'אחראי עובדים', 'סמנכ״ל', 'מנכ״ל'];
+
+        try { users = JSON.parse(localStorage.getItem('japanita_users')); } catch(e) { users = null; }
+        if (!users || !Array.isArray(users)) users = [{ username: 'admin', pin: '1234', role: 'מנכ״ל' }];
+
+        function saveStorage() {
+            localStorage.setItem('japanita_users', JSON.stringify(users));
+            localStorage.setItem('japanita_roles', JSON.stringify(roles));
+        }
+
+        // יצירת עלי סאקורה נופלים מיד בכל המסך
+        const intro = document.getElementById('introScreen');
+        for (let i = 0; i < 30; i++) {
+            let petal = document.createElement('div');
+            petal.className = 'sakura';
+            let size = Math.random() * 12 + 8;
+            petal.style.width = size + 'px';
+            petal.style.height = size + 'px';
+            petal.style.left = Math.random() * 100 + '%';
+            petal.style.top = (Math.random() * -100) + '%';
+            petal.style.animationDuration = (Math.random() * 5 + 4) + 's';
+            petal.style.animationDelay = (Math.random() * 5) + 's';
+            intro.appendChild(petal);
+        }
+
+        function openLoginForm() {
+            const sound = document.getElementById('ambientSound');
+            if (sound) {
+                sound.volume = 0.4;
+                sound.play().catch(e => console.log("Audio play blocked by browser policy"));
+            }
+            document.getElementById('showLoginBtn').style.display = 'none';
+            document.getElementById('loginBox').classList.add('active');
+        }
+
+        function enterSite() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const pin = document.getElementById('pinInput').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const validUser = users.find(u => u.username === username && u.pin === pin);
+
+            if (validUser) {
+                const introScreen = document.getElementById('introScreen');
+                const bgContainer = document.getElementById('bgContainer');
+                const badge = document.getElementById('userProfileBadge');
+
+                document.getElementById('badgeUsername').innerText = validUser.username;
+                document.getElementById('badgeRole').innerText = validUser.role || 'עובד רגיל';
+                badge.classList.add('active');
+
+                introScreen.classList.add('fade-out');
+                bgContainer.classList.add('active');
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // אפקט תנועת העכבר
+        const bgContainer = document.getElementById('bgContainer');
+        window.addEventListener('mousemove', (e) => {
+            const mouseX = (e.clientX / window.innerWidth) - 0.5;
+            const mouseY = (e.clientY / window.innerHeight) - 0.5;
+            bgContainer.style.transform = `scale(1.05) translate(${mouseX * -35}px, ${mouseY * -25}px)`;
+        });
+
+        // ---------------- לחיצה רצופה על F1 למשך 10 שניות (ללא מד נראה) ----------------
+        let f1HoldTimer = null;
+        let f1HoldDuration = 10000; // 10 שניות
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F9') {
+                e.preventDefault();
+                const modal = document.getElementById('adminModal');
+                modal.classList.toggle('active');
+                if (modal.classList.contains('active')) {
+                    document.getElementById('adminLoginSection').style.display = 'block';
+                    document.getElementById('adminDashboardSection').style.display = 'none';
+                    document.getElementById('adminPasswordInput').value = '';
+                    document.getElementById('adminErrorMsg').style.display = 'none';
+                    document.getElementById('adminPasswordInput').focus();
+                }
+            }
+
+            // זיהוי לחיצה רצופה על F1
+            if (e.key === 'F1') {
+                e.preventDefault();
+                if (!f1HoldTimer) {
+                    f1HoldTimer = setTimeout(() => {
+                        f1HoldTimer = null;
+                        
+                        // פתיחת חלון F1
+                        const f1Modal = document.getElementById('f1Modal');
+                        f1Modal.classList.add('active');
+                        document.getElementById('f1LoginSection').style.display = 'block';
+                        document.getElementById('f1DashboardSection').style.display = 'none';
+                        document.getElementById('f1PasswordInput').value = '';
+                        document.getElementById('f1ErrorMsg').style.display = 'none';
+                        document.getElementById('f1PasswordInput').focus();
+                    }, f1HoldDuration);
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'F1') {
+                if (f1HoldTimer) {
+                    clearTimeout(f1HoldTimer);
+                    f1HoldTimer = null;
+                }
+            }
+        });
+
+        // אימות קוד F1: nadirnadirnashirbeyachad
+        function verifyF1Code() {
+            const pass = document.getElementById('f1PasswordInput').value;
+            const err = document.getElementById('f1ErrorMsg');
+
+            if (pass === 'nadirnadirnashirbeyachad') {
+                document.getElementById('f1LoginSection').style.display = 'none';
+                document.getElementById('f1DashboardSection').style.display = 'block';
+                updateF1StatusDisplay();
+            } else {
+                err.style.display = 'block';
+            }
+        }
+
+        function closeF1() {
+            document.getElementById('f1Modal').classList.remove('active');
+        }
+
+        // פונקציית כיבוי והדלקה גלובלית של האתר
+        function setGlobalSiteState(isWorking) {
+            if (isWorking) {
+                localStorage.removeItem('japanita_global_crash');
+            } else {
+                localStorage.setItem('japanita_global_crash', 'true');
+            }
+            checkGlobalCrashStatus();
+            updateF1StatusDisplay();
+        }
+
+        function updateF1StatusDisplay() {
+            const box = document.getElementById('f1StatusBox');
+            let isCrashed = localStorage.getItem('japanita_global_crash') === 'true';
+            if (isCrashed) {
+                box.className = 'f1-status-box offline';
+                box.innerText = 'סטטוס אתר: מושבת / קרס';
+            } else {
+                box.className = 'f1-status-box online';
+                box.innerText = 'סטטוס אתר: פעיל ותקין לחלוטין';
+            }
+        }
+
+        // ניהול אדמין רגיל (F9)
+        function verifyAdminCode() {
+            const passInput = document.getElementById('adminPasswordInput').value;
+            const errorMsg = document.getElementById('adminErrorMsg');
+            if (passInput === 'mafuyama1245') {
+                document.getElementById('adminLoginSection').style.display = 'none';
+                document.getElementById('adminDashboardSection').style.display = 'block';
+                updateRoleSelects();
+                renderRoles();
+                renderUsers();
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        function closeAdmin() {
+            document.getElementById('adminModal').classList.remove('active');
+        }
+
+        function updateRoleSelects() {
+            const selectElem = document.getElementById('newRole');
+            selectElem.innerHTML = roles.map(r => `<option value="${r}">${r}</option>`).join('');
+        }
+
+        function addNewRole() {
+            const roleName = document.getElementById('newRoleName').value.trim();
+            if (roleName && !roles.includes(roleName)) {
+                roles.push(roleName);
+                saveStorage();
+                updateRoleSelects();
+                renderRoles();
+                renderUsers();
+                document.getElementById('newRoleName').value = '';
+            }
+        }
+
+        function deleteRole(index) {
+            if (roles.length <= 1) {
+                alert('חייבת להישאר לפחות דרגה אחת במערכת!');
+                return;
+            }
+            const removedRole = roles[index];
+            roles.splice(index, 1);
+            users.forEach(u => { if (u.role === removedRole) u.role = roles[0]; });
+            saveStorage();
+            updateRoleSelects();
+            renderRoles();
+            renderUsers();
+        }
+
+        function renderRoles() {
+            const roleList = document.getElementById('roleList');
+            roleList.innerHTML = '';
+            roles.forEach((r, index) => {
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                div.innerHTML = `<span><b>${r}</b></span><button class="delete-btn" onclick="deleteRole(${index})">מחק דרגה</button>`;
+                roleList.appendChild(div);
+            });
+        }
+
+        function renderUsers() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            users.forEach((u, index) => {
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                let roleOptions = roles.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('');
+                div.innerHTML = `<span><b>${u.username}</b> (קוד: ${u.pin})</span><div style="display: flex; gap: 6px; align-items: center;"><select class="admin-select" style="padding: 3px 6px; font-size: 0.8rem;" onchange="changeUserRole(${index}, this.value)">${roleOptions}</select><button class="delete-btn" onclick="deleteUser(${index})">מחק</button></div>`;
+                userList.appendChild(div);
+            });
+        }
+
+        function changeUserRole(index, newRole) {
+            users[index].role = newRole;
+            saveStorage();
+        }
+
+        function addUser() {
+            const newUsername = document.getElementById('newUsername').value.trim();
+            const newPin = document.getElementById('newPin').value.trim();
+            const newRole = document.getElementById('newRole').value;
+            if (newUsername && newPin) {
+                users.push({ username: newUsername, pin: newPin, role: newRole });
+                saveStorage();
+                renderUsers();
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPin').value = '';
+            }
+        }
+
+        function deleteUser(index) {
+            users.splice(index, 1);
+            saveStorage();
+            renderUsers();
+        }
+
+        saveStorage();
+    </script>
+
+</body>
+</html>
